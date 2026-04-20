@@ -7,35 +7,45 @@ if str(PROJECT_ROOT) not in sys.path:
 
 import faiss
 
-from app.config.settings import DEFAULT_ROUTING_THRESHOLD
-from app.persona_matching.embeddings import encode_texts
-from app.utils.logger import get_logger
+from app.persona_matching.embeddings import EMBEDDING_MODEL_ID, encode_texts
 from personas import PERSONAS
 
-logger = get_logger("persona_router")
-
 PERSONA_IDS = list(PERSONAS.keys())
-PERSONA_TEXTS = [PERSONAS[persona_id] for persona_id in PERSONA_IDS]
+
+
+def _format_persona_text(bot_id: str, persona_text: str) -> str:
+    cleaned = " ".join(persona_text.strip().split())
+    return (
+        f"Persona {bot_id}. "
+        f"This bot's worldview is: {cleaned} "
+        f"It consistently writes from this perspective and reacts strongly to related topics."
+    )
+
+
+PERSONA_TEXTS = [_format_persona_text(bot_id, PERSONAS[bot_id]) for bot_id in PERSONA_IDS]
 PERSONA_EMBEDDINGS = encode_texts(PERSONA_TEXTS).astype("float32")
 
 INDEX = faiss.IndexFlatIP(PERSONA_EMBEDDINGS.shape[1])
 INDEX.add(PERSONA_EMBEDDINGS)
 
 
-def route_post_to_bots(post_content: str, threshold: float = DEFAULT_ROUTING_THRESHOLD):
-    """Return relevant bots as `(bot_id, cosine_similarity)` tuples."""
-    post_embedding = encode_texts([post_content]).astype("float32")
+def route_post_to_bots(post_content: str, threshold: float = 0.6):
+    post_text = " ".join(post_content.strip().split())
+    post_embedding = encode_texts([post_text]).astype("float32")
     scores, indices = INDEX.search(post_embedding, k=len(PERSONA_IDS))
 
+    print(f"Embedding model used: {EMBEDDING_MODEL_ID}")
+    print(f"Routing input: {post_text}")
+
     matches = []
-    logger.info("Routing post: %s", post_content)
     for score, idx in zip(scores[0], indices[0]):
         bot_id = PERSONA_IDS[idx]
         similarity = float(score)
-        logger.info("Similarity score | %s | %.4f", bot_id, similarity)
+        print(f"Similarity score | {bot_id} | {similarity:.4f}")
         if similarity >= threshold:
             matches.append((bot_id, similarity))
 
+    print(f"Filtered bots (threshold={threshold}): {matches}")
     return matches
 
 

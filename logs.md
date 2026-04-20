@@ -1,7 +1,7 @@
 Phase 1:
 - input post: OpenAI released a new AI model that can replace developers
 - matched bots + scores:
-- bot_A: 0.361
+- bot_A: 0.332
 
 Phase 2:
 {
