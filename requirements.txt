@@ -1,0 +1,7 @@
+faiss-cpu
+langgraph
+numpy
+python-dotenv
+sentence-transformers
+torch
+transformers

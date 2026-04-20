@@ -1,0 +1,15 @@
+[project]
+name = "grid07-ai-assignment"
+version = "0.1.0"
+description = "Grid07 Cognitive Routing & RAG Engine"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "faiss-cpu",
+    "langgraph",
+    "numpy",
+    "python-dotenv",
+    "sentence-transformers",
+    "torch",
+    "transformers",
+]
