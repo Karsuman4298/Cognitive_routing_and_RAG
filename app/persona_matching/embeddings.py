@@ -20,7 +20,7 @@ from app.config.settings import ENV_FILE
 
 load_dotenv(ENV_FILE)
 
-EMBEDDING_MODEL_ID = "sentence-transformers/all-mpnet-base-v2"
+EMBEDDING_MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
 
 
 @lru_cache(maxsize=1)
@@ -42,7 +42,7 @@ def encode_texts(texts: Iterable[str]) -> np.ndarray:
         convert_to_numpy=True,
         show_progress_bar=False,
     )
-    return normalize_embeddings(embeddings)
+    return normalize_embeddings(embeddings).astype("float32")
 
 
 def get_embedding(text: str) -> np.ndarray:

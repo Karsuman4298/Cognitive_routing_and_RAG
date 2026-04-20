@@ -11,31 +11,19 @@ from app.persona_matching.embeddings import EMBEDDING_MODEL_ID, encode_texts
 from personas import PERSONAS
 
 PERSONA_IDS = list(PERSONAS.keys())
-
-
-def _format_persona_text(bot_id: str, persona_text: str) -> str:
-    cleaned = " ".join(persona_text.strip().split())
-    return (
-        f"Persona {bot_id}. "
-        f"This bot's worldview is: {cleaned} "
-        f"It consistently writes from this perspective and reacts strongly to related topics."
-    )
-
-
-PERSONA_TEXTS = [_format_persona_text(bot_id, PERSONAS[bot_id]) for bot_id in PERSONA_IDS]
-PERSONA_EMBEDDINGS = encode_texts(PERSONA_TEXTS).astype("float32")
+PERSONA_TEXTS = [PERSONAS[persona_id] for persona_id in PERSONA_IDS]
+PERSONA_EMBEDDINGS = encode_texts(PERSONA_TEXTS)
 
 INDEX = faiss.IndexFlatIP(PERSONA_EMBEDDINGS.shape[1])
 INDEX.add(PERSONA_EMBEDDINGS)
 
 
-def route_post_to_bots(post_content: str, threshold: float = 0.6):
+def route_post_to_bots(post_content: str, threshold: float = 0.3):
     post_text = " ".join(post_content.strip().split())
-    post_embedding = encode_texts([post_text]).astype("float32")
+    post_embedding = encode_texts([post_text])
     scores, indices = INDEX.search(post_embedding, k=len(PERSONA_IDS))
 
     print(f"Embedding model used: {EMBEDDING_MODEL_ID}")
-    print(f"Routing input: {post_text}")
 
     matches = []
     for score, idx in zip(scores[0], indices[0]):
